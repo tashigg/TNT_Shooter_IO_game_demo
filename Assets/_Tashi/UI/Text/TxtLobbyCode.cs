@@ -29,6 +29,7 @@ public class TxtLobbyCode : SaiMonoBehaviour
 
     protected virtual void ShowLobbyCode()
     {
-        this.textMeshPro.text = LobbyManager.Instance._lobbyCode;
+        if(LobbyManager.Instance.useUnityRelay) this.textMeshPro.text = LobbyManager.Instance.relayJoinCode;
+        else this.textMeshPro.text = LobbyManager.Instance._lobbyCode;
     }
 }

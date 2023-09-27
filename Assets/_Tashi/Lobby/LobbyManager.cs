@@ -1,9 +1,14 @@
 using Tashi.NetworkTransport;
 using Unity.Netcode;
+using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Lobbies;
+using Unity.Services.Lobbies.Models;
+using Unity.Services.Relay;
+using Unity.Services.Relay.Models;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class LobbyManager : SaiMonoBehaviour
@@ -28,6 +33,11 @@ public class LobbyManager : SaiMonoBehaviour
     public int maxConnections = 10;
     public float _nextHeartbeat;
     public float _nextLobbyRefresh;
+    public Lobby lobby;
+
+    [Header("Unity Relay")]
+    public bool useUnityRelay = false;
+    public string relayJoinCode = "";
 
     protected override void Awake()
     {
@@ -78,9 +88,26 @@ public class LobbyManager : SaiMonoBehaviour
         if (Time.realtimeSinceStartup >= _nextLobbyRefresh)
         {
             this._nextLobbyRefresh = Time.realtimeSinceStartup + 2;
-            this.LobbyUpdate();
-            this.ReceiveIncomingDetail();
+            this.lobby = await LobbyService.Instance.GetLobbyAsync(_lobbyId);
+            this.ShowLobbyInfo();
+            if (this.useUnityRelay)
+            {
+                //No thing to do
+            }
+            else
+            {
+                this.LobbyUpdate();
+                this.ReceiveIncomingDetail();
+            }
         }
+    }
+
+    protected virtual void ShowLobbyInfo()
+    {
+        this.playerCount = this.lobby.Players.Count;
+        this.currentPlayerCount.text = this.playerCount.ToString();
+        if (this.useUnityRelay) this.lobbyCode.text = this.relayJoinCode;
+        else this.lobbyCode.text = this._lobbyCode;
     }
 
     protected virtual async void LobbyUpdate()
@@ -90,7 +117,7 @@ public class LobbyManager : SaiMonoBehaviour
         var updatePlayerOptions = new UpdatePlayerOptions();
         if (outgoingSessionDetails.AddTo(updatePlayerOptions))
         {
-            await LobbyService.Instance.UpdatePlayerAsync(_lobbyId, PlayerId, updatePlayerOptions);
+            await LobbyService.Instance.UpdatePlayerAsync(this._lobbyId, PlayerId, updatePlayerOptions);
         }
 
         if (_isLobbyHost)
@@ -98,25 +125,22 @@ public class LobbyManager : SaiMonoBehaviour
             var updateLobbyOptions = new UpdateLobbyOptions();
             if (outgoingSessionDetails.AddTo(updateLobbyOptions))
             {
-                await LobbyService.Instance.UpdateLobbyAsync(_lobbyId, updateLobbyOptions);
+                await LobbyService.Instance.UpdateLobbyAsync(this._lobbyId, updateLobbyOptions);
             }
         }
     }
 
-    protected virtual async void ReceiveIncomingDetail()
+    protected virtual void ReceiveIncomingDetail()
     {
         if (NetworkTransport.SessionHasStarted) return;
-        
+
         Debug.LogWarning("Receive Incoming Detail");
 
-        var lobby = await LobbyService.Instance.GetLobbyAsync(_lobbyId);
-        var incomingSessionDetails = IncomingSessionDetails.FromUnityLobby(lobby);
-        this.playerCount = lobby.Players.Count;
-        this.currentPlayerCount.text = this.playerCount.ToString();
-        this.lobbyCode.text = this._lobbyCode;
+        var incomingSessionDetails = IncomingSessionDetails.FromUnityLobby(this.lobby);
+        this.playerCount = this.lobby.Players.Count;
 
         // This should be replaced with whatever logic you use to determine when a lobby is locked in.
-        if (this.playerCount > 1 && incomingSessionDetails.AddressBook.Count == lobby.Players.Count)
+        if (this.playerCount > 1 && incomingSessionDetails.AddressBook.Count == this.lobby.Players.Count)
         {
             Debug.LogWarning("Update Session Details");
             NetworkTransport.UpdateSessionDetails(incomingSessionDetails);
@@ -192,18 +216,68 @@ public class LobbyManager : SaiMonoBehaviour
         this.maxConnections = int.Parse(maxPlayerString);
         Debug.Log($"Create {lobbyName}: {maxPlayerString}");
 
-        var lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, this.maxConnections, lobbyOptions);
-        this._lobbyId = lobby.Id;
-        this._lobbyCode = lobby.LobbyCode;
+        this.lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, this.maxConnections, lobbyOptions);
+        this._lobbyId = this.lobby.Id;
+        this._lobbyCode = this.lobby.LobbyCode;
         this._isLobbyHost = true;
         this.lobbyStatus.SetActive(true);
+
+        if (this.useUnityRelay) this.CreateRelay();
+    }
+
+    protected virtual async void CreateRelay()
+    {
+        try
+        {
+            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(this.maxConnections);
+            this.relayJoinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+            NetworkManager.Singleton.GetComponent<UnityTransport>().SetHostRelayData(
+                allocation.RelayServer.IpV4,
+                (ushort)allocation.RelayServer.Port,
+                allocation.AllocationIdBytes,
+                allocation.Key,
+                allocation.ConnectionData
+                );
+            //NetworkManager.Singleton.StartHost();
+            SceneManager.LoadScene("2_battle");
+        }
+        catch (RelayServiceException e)
+        {
+            Debug.LogWarning(e);
+        }
     }
 
     public virtual async void JoinLobby()
     {
-        var lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(this._lobbyCodeToJoin);
-        this._lobbyId = lobby.Id;
-        this._lobbyCode = lobby.LobbyCode;
+        if (this.useUnityRelay)
+        {
+            try
+            {
+                JoinAllocation allocation = await RelayService.Instance.JoinAllocationAsync(this._lobbyCodeToJoin);
+                NetworkManager.Singleton.GetComponent<UnityTransport>().SetClientRelayData(
+                        allocation.RelayServer.IpV4,
+                        (ushort)allocation.RelayServer.Port,
+                        allocation.AllocationIdBytes,
+                        allocation.Key,
+                        allocation.ConnectionData,
+                        allocation.HostConnectionData
+                    );
+
+                //NetworkManager.Singleton.StartClient();
+                SceneManager.LoadScene("2_battle");
+            }
+            catch (RelayServiceException e)
+            {
+                Debug.LogWarning(e);
+            }
+        }
+        else
+        {
+            this.lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(this._lobbyCodeToJoin);
+            this._lobbyId = lobby.Id;
+            this._lobbyCode = lobby.LobbyCode;
+        }
+
         this.lobbyStatus.SetActive(true);
     }
 

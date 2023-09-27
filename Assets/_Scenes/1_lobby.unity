@@ -4111,6 +4111,8 @@ MonoBehaviour:
   maxConnections: 10
   _nextHeartbeat: 0
   _nextLobbyRefresh: 0
+  useUnityRelay: 1
+  relayJoinCode: 
 --- !u!4 &1325196469
 Transform:
   m_ObjectHideFlags: 0
@@ -5020,43 +5022,16 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 4552396514451387234, guid: ed8252a3a74149540b80c9d4e997bdb0,
+    - target: {fileID: 3305105447351865371, guid: ed8252a3a74149540b80c9d4e997bdb0,
         type: 3}
-      propertyPath: Config.NetworkMode
-      value: 3
+      propertyPath: m_ProtocolType
+      value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 4552396514451387234, guid: ed8252a3a74149540b80c9d4e997bdb0,
+    - target: {fileID: 3305105447351865371, guid: ed8252a3a74149540b80c9d4e997bdb0,
         type: 3}
-      propertyPath: Config.SyncInterval
-      value: 33
+      propertyPath: ConnectionData.ServerListenAddress
+      value: 127.0.0.1
       objectReference: {fileID: 0}
-    - target: {fileID: 4552396514451387234, guid: ed8252a3a74149540b80c9d4e997bdb0,
-        type: 3}
-      propertyPath: Config.TashiRelayApiKey
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 4552396514451387234, guid: ed8252a3a74149540b80c9d4e997bdb0,
-        type: 3}
-      propertyPath: Config.TashiRelayBaseUrl
-      value: https://relay.tashi.gg
-      objectReference: {fileID: 0}
-    - target: {fileID: 4552396514451387235, guid: ed8252a3a74149540b80c9d4e997bdb0,
-        type: 3}
-      propertyPath: LogLevel
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 4552396514451387235, guid: ed8252a3a74149540b80c9d4e997bdb0,
-        type: 3}
-      propertyPath: NetworkConfig.PlayerPrefab
-      value: 
-      objectReference: {fileID: 3465496316277596461, guid: 7c34f28c7ca44684d8f928ffc1592527,
-        type: 3}
-    - target: {fileID: 4552396514451387235, guid: ed8252a3a74149540b80c9d4e997bdb0,
-        type: 3}
-      propertyPath: NetworkConfig.Prefabs.NetworkPrefabsLists.Array.data[0]
-      value: 
-      objectReference: {fileID: 11400000, guid: 66647c4cdf0a3034184c608bdd9271ae,
-        type: 2}
     - target: {fileID: 4552396514451387261, guid: ed8252a3a74149540b80c9d4e997bdb0,
         type: 3}
       propertyPath: m_Name

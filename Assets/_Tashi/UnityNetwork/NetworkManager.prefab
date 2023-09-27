@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4552396514451387262}
   - component: {fileID: 4552396514451387235}
-  - component: {fileID: 4552396514451387234}
+  - component: {fileID: 3305105447351865371}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -25,7 +25,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4552396514451387261}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 800, y: 100, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -47,7 +47,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   NetworkConfig:
     ProtocolVersion: 0
-    NetworkTransport: {fileID: 4552396514451387234}
+    NetworkTransport: {fileID: 3305105447351865371}
     PlayerPrefab: {fileID: 3465496316277596461, guid: 7c34f28c7ca44684d8f928ffc1592527,
       type: 3}
     Prefabs:
@@ -70,8 +70,8 @@ MonoBehaviour:
     EnableNetworkLogs: 1
     OldPrefabList: []
   RunInBackground: 1
-  LogLevel: 1
---- !u!114 &4552396514451387234
+  LogLevel: 2
+--- !u!114 &3305105447351865371
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -80,12 +80,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 4552396514451387261}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e5d3792a1cedbd65c9fea7d66071902c, type: 3}
+  m_Script: {fileID: 11500000, guid: 6960e84d07fb87f47956e7a81d71c4e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Config:
-    BindPort: 0
-    SyncInterval: 33
-    NetworkMode: 3
-    TashiRelayBaseUrl: https://relay.tashi.gg
-    TashiRelayApiKey: 
+  m_ProtocolType: 0
+  m_MaxPacketQueueSize: 128
+  m_MaxPayloadSize: 6144
+  m_HeartbeatTimeoutMS: 500
+  m_ConnectTimeoutMS: 1000
+  m_MaxConnectAttempts: 60
+  m_DisconnectTimeoutMS: 30000
+  ConnectionData:
+    Address: 127.0.0.1
+    Port: 7777
+    ServerListenAddress: 
+  DebugSimulator:
+    PacketDelayMS: 0
+    PacketJitterMS: 0
+    PacketDropRate: 0
